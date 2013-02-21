@@ -1,25 +1,25 @@
 package 
 {
-	import flash.display.BitmapData;
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
-	import starling.display.Image;
 	import starling.display.Quad;
 	import starling.display.Sprite;
-	import starling.textures.Texture;
 	import starling.events.EnterFrameEvent;
 	import starling.events.Event;
-	import starling.extensions.lighting.lights.PointLight;
 	import starling.extensions.lighting.core.LightLayer;
 	import starling.extensions.lighting.geometry.QuadShadowGeometry;
+	import starling.extensions.lighting.lights.DirectionalLight;
+	import starling.extensions.lighting.lights.PointLight;
+	import starling.extensions.lighting.lights.SpotLight;
 
 	import flash.display.Stage;
 	import flash.events.MouseEvent;
 
+
 	/**
 	 * @author Szenia Zadvornykh
 	 */
-	public class StarlingLightingExample extends Sprite
+	public class BasicLightingExample extends Sprite
 	{
 		private var lightLayer:LightLayer;
 		
@@ -32,7 +32,7 @@ package
 		private var nativeStageWidth:int = 1000;
 		private var nativeStageHeight:int = 1000;
 		
-		public function StarlingLightingExample()
+		public function BasicLightingExample()
 		{
 			addEventListener(Event.ADDED_TO_STAGE, initialize);
 		}
@@ -49,13 +49,13 @@ package
 			
 			//create the LightLayer coverting the stage
 			//this where the lights and shadows are rendered
-			lightLayer = new LightLayer(nativeStageWidth, nativeStageHeight, 0x000000);
+			lightLayer = new LightLayer(nativeStageWidth, nativeStageHeight, 0x000000, 0);
 			
 			//uncomment this to add a background image with random perlin noise to see how the lights might look on a texture 
-			var bmd:BitmapData = new BitmapData(nativeStageWidth, nativeStageHeight, false, 0xffffffff);
-			var seed:Number = Math.floor(Math.random()*100);
-			bmd.perlinNoise(320, 240, 8, seed, true, true, 7, false, null);
-			addChild(new Image(Texture.fromBitmapData(bmd)));
+//			var bmd:BitmapData = new BitmapData(nativeStageWidth, nativeStageHeight, false, 0xffffffff);
+//			var seed:Number = Math.floor(Math.random()*100);
+//			bmd.perlinNoise(320, 240, 8, seed, true, true, 7, false, null);
+//			addChild(new Image(Texture.fromBitmapData(bmd)));
 			
 			createLights();
 			createGeometry();
@@ -70,11 +70,27 @@ package
 		private function createLights():void
 		{
 			//create a white light that will follow the mouse position
-			mouseLight = new PointLight(0, 0, 400, 0xffffff);
+			mouseLight = new PointLight(0, 0, 400, 0xffffff, 1);
 			//add it to the light layer
 			lightLayer.addLight(mouseLight);
 			
 			lights = new <PointLight>[];
+			
+			//create a low intensity directional light, casting shadows at a 60 degree angle
+			var directionalLight:DirectionalLight = new DirectionalLight(60, 0xffffff, 0.1);
+			lightLayer.addLight(directionalLight);
+			
+			//create a few spotlights
+			var spotLight:SpotLight;
+			
+			spotLight = new SpotLight(0, 0, 600, 45, 60, 20, 0xff0000, 1);
+			lightLayer.addLight(spotLight);
+
+			spotLight = new SpotLight(nativeStageWidth / 2, 0, 600, 90, 60, 20, 0x00ff00, 1);
+			lightLayer.addLight(spotLight);
+
+			spotLight = new SpotLight(nativeStageWidth, 0, 600, 135, 60, 20, 0x0000ff, 1);
+			lightLayer.addLight(spotLight);
 			
 			//uncomment this to add an arbitrary number of random lights
 //			var light:Light;
@@ -97,10 +113,10 @@ package
 			var h:int;
 			
 			//create an arbitrary number of quads to act as shadow geometry
-			for(var i:int; i < 150; i++)
+			for(var i:int; i < 50; i++)
 			{
-				h = w = 10 + Math.round(Math.random() * 10);
-				//h = 4;
+				w = 10 + Math.round(Math.random() * 10);
+				h = 4;
 				
 				quad = new Quad(w, h, Math.random() * 0xffffff);
 				quad.pivotX = w / 2;
@@ -131,7 +147,7 @@ package
 			lightLayer.addLight(light);
 			lights.push(light);
 		}
-
+		
 		private function update(event:EnterFrameEvent):void
 		{
 			mouseLight.x = nativeStage.mouseX;

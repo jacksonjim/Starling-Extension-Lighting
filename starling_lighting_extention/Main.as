@@ -18,6 +18,7 @@
 			stage.align = StageAlign.TOP_LEFT;
 			
 			starling = new Starling(StarlingLightingExample, stage);
+			//starling = new Starling(BasicLightingExample, stage);
 			starling.start();
 		}
 	}
