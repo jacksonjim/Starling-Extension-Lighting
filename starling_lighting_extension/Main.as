@@ -3,6 +3,8 @@
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.display3D.Context3DRenderMode;
+	import flash.display3D.Context3DProfile;
 	import starling.core.Starling;
 
 
@@ -17,8 +19,7 @@
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
 			
-			starling = new Starling(StarlingLightingExample, stage);
-			//starling = new Starling(BasicLightingExample, stage);
+			starling = new Starling(BasicLightingExample, stage, null, null, Context3DRenderMode.AUTO, "baseline" /*Context3DProfile.BASELINE*/);
 			starling.start();
 		}
 	}
