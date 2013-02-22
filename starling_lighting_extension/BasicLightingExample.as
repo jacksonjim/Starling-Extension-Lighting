@@ -6,7 +6,6 @@ package
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
-	import starling.display.Quad;
 	import starling.display.Sprite;
 	import starling.events.EnterFrameEvent;
 	import starling.events.Event;
@@ -120,7 +119,7 @@ package
 			var r:int;
 			var v:int;
 			
-			//create an arbitrary number of quads to act as shadow geometry
+			//create an arbitrary number of objects to act as shadow geometry
 			for(var i:int; i < 20; i++)
 			{
 				r = 10 + Math.round(Math.random() * 10);
@@ -132,14 +131,14 @@ package
 				polygon.x = Math.random() * nativeStageWidth;
 				polygon.y = Math.random() * nativeStageHeight;
 				
-				//this takes the bounding box of the quad to create geometry that blocks light
-				//the QuadShadowGeometry class also accepts Images
+				//this takes the bounding box of the object to create geometry that blocks light
+				//the RegularPolygonShadowGeometry class also accepts Images
 				//if you want to create more complex geometry for a display object, 
 				//you can make your own ShadowGeometry subclass, and override the createEdges method
 				lightLayer.addShadowGeometry(new RegularPolygonShadowGeometry(polygon));
 				
-				//add the quad to the stage
-				//the quad will cast shadows even if it is not on the display list (I might change this later)
+				//add the object to the stage
+				//the object will cast shadows even if it is not on the display list (I might change this later)
 				//to remove shadow geometry assosiated with a display object, call LightLayer.removeGeometryForDisplayObject 			
 				addChild(polygon);
 				
@@ -206,7 +205,7 @@ package
 			var dy:int;
 			var rad:Number;
 			
-			//rotate the quads to face the mouse position
+			//rotate the objects to face the mouse position
 			for each(var g:DisplayObject in geometry)
 			{
 				dx = g.x - mouseLight.x;
