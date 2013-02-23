@@ -2,6 +2,7 @@ package starling.extensions.lighting.shaders
 {
 	import starling.core.Starling;
 	import starling.errors.AbstractMethodError;
+	import starling.extensions.lighting.core.LightLayer;
 
 	import com.adobe.utils.AGALMiniAssembler;
 
@@ -64,7 +65,11 @@ package starling.extensions.lighting.shaders
 		
 		final public function activate(context:Context3D):void
 		{
-			context.setProgram(program);
+			if (LightLayer.Program != _name)
+			{
+				context.setProgram(program);
+				LightLayer.Program == _name
+			}
 			
 			activateHook(context);
 		}

@@ -3,45 +3,23 @@ package starling.extensions.lighting.core
 	import flash.geom.Point;
 	/**
 	 * ...
-	 * @author Ryan Speets
+	 * @author UG
 	 */
 	public class Edge 
 	{
-		private var _start:Point;
-		private var _end:Point;
-		
+		public var start:Point;
+		public var end:Point;
 		/**
 		 * simple class to hold the start and end points of an edge used for shadow casting
 		 */
-		public function Edge(start:Point, end:Point)
+		public function Edge(_start:Point, _end:Point)
 		{
-			_start = start;
-			_end = end;
+			start =_start;
+			end = _end;
 		}
-
-		public function get start():Point
-		{
-			return _start;
-		}
-
-		public function set start(start:Point):void
-		{
-			_start = start;
-		}
-
-		public function get end():Point
-		{
-			return _end;
-		}
-
-		public function set end(end:Point):void
-		{
-			_end = end;
-		}
-		
 		public function toString():String
 		{
-			return "start (" + _start.x + ", " + _start.y + ") end (" + _end.x + ", " + _end.y + ")";
+			return "start (" + start.x + ", " + start.y + ") end (" + end.x + ", " + end.y + ")";
 		}
 	}
 }

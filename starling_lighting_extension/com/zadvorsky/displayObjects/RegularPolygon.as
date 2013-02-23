@@ -144,10 +144,11 @@ package com.zadvorsky.displayObjects
 			context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
 			context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3);
 			context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, Context3DVertexBufferFormat.FLOAT_4);
-			context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix, true);
+			context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
 			context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
 			context.drawTriangles(mIndexBuffer, 0, mNumEdges);
+			support.raiseDrawCount(1);
 
 			context.setVertexBufferAt(0, null);
 			context.setVertexBufferAt(1, null);

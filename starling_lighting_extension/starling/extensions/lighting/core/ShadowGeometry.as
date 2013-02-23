@@ -35,6 +35,7 @@ package starling.extensions.lighting.core
 			{
 				_worldEdges.push(new Edge(new Point(), new Point()));
 			}
+			//transform();
 		}
 		
 		/**

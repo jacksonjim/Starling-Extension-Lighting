@@ -1,12 +1,7 @@
 package starling.extensions.lighting.core
 {
-	import starling.extensions.lighting.shaders.GaussianBlurShader;
-	import starling.extensions.lighting.shaders.SpotLightShader;
-	import starling.extensions.lighting.lights.SpotLight;
-	import starling.extensions.lighting.shaders.DirectionalLightShadowShader;
-	import starling.extensions.lighting.lights.DirectionalLight;
-	import starling.extensions.lighting.shaders.DirectionalLightShader;
 	import com.adobe.utils.PerspectiveMatrix3D;
+	
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DClearMask;
@@ -20,6 +15,8 @@ package starling.extensions.lighting.core
 	import flash.display3D.VertexBuffer3D;
 	import flash.display3D.textures.Texture;
 	import flash.geom.Rectangle;
+	import flash.geom.Point;
+	
 	import starling.core.RenderSupport;
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
@@ -28,7 +25,15 @@ package starling.extensions.lighting.core
 	import starling.extensions.lighting.shaders.PointLightShader;
 	import starling.extensions.lighting.shaders.PositionalLightShadowShader;
 	import starling.utils.Color;
+	import starling.utils.getNextPowerOfTwo;
 
+	import starling.extensions.lighting.shaders.GaussianBlurShader;
+	import starling.extensions.lighting.shaders.SpotLightShader;
+	import starling.extensions.lighting.lights.SpotLight;
+	import starling.extensions.lighting.shaders.DirectionalLightShadowShader;
+	import starling.extensions.lighting.lights.DirectionalLight;
+	import starling.extensions.lighting.shaders.DirectionalLightShader;
+	
 	/**
 	 * @author Szenia Zadvornykh
 	 * 
@@ -36,6 +41,17 @@ package starling.extensions.lighting.core
 	 */
 	public class LightLayer extends DisplayObject
 	{
+		public static var Program:String = "";
+		
+		private var geometry:Vector.<ShadowGeometry>;
+		private var geometryVertexBuffer:VertexBuffer3D;
+		private var geometryIndexBuffer:IndexBuffer3D;
+		private var geometryVertexCount:uint;
+		
+		private var vertices:Vector.<Number> = new <Number>[];
+		private var indices:Vector.<uint> = new <uint>[];
+		private var totalEdgeCount:uint = 0;
+		
 		private var lights:Vector.<LightBase>;
 		
 		private var pointLightShader:PointLightShader;
@@ -57,16 +73,13 @@ package starling.extensions.lighting.core
 		private var _height:int;
 		private var legalWidth:uint;
 		private var legalHeight:uint;
-		private var _ambientColor:Vector.<Number>;
 		private var _shadowSoftness:Number;
+		private var _boundsRect:Rectangle = new Rectangle();
+		private var _renderMode:int;
+		private var _relatedLayer:LightLayer;
 		
 		private var projectionMatrix:PerspectiveMatrix3D;
-		
-		private var geometry:Vector.<ShadowGeometry>;
-		private var geometryVertexBuffer:VertexBuffer3D;
-		private var geometryIndexBuffer:IndexBuffer3D;
-		private var geometryVertexCount:uint;
-		
+
 		/**
 		 * v0.1
 		 * 
@@ -84,7 +97,7 @@ package starling.extensions.lighting.core
 		 * @param ambientColorIntencity intencity of the ambient light. Values range from 0 to 1
 		 * @param shadowSoftness control how soft the shadow eges are. Minimum of 1
 		 */
-		public function LightLayer(width:int, height:int, ambientColor:uint = 0x000000, ambientColorIntensity:Number = 1, shadowSoftness:Number = 2)
+		public function LightLayer(width:int, height:int, ambientColor:uint = 0x000000, ambientColorIntensity:Number = 1, shadowSoftness:Number = 1)
 		{
 			_width = width;
 			_height = height;
@@ -92,7 +105,6 @@ package starling.extensions.lighting.core
 						
 			lights = new <LightBase>[];
 			geometry = new <ShadowGeometry>[];
-			_ambientColor = new <Number>[];
 			
 			createScene();
 			createShaders();
@@ -113,8 +125,8 @@ package starling.extensions.lighting.core
 			sceneIndexBuffer = context.createIndexBuffer(6);
 			sceneIndexBuffer.uploadFromVector(Vector.<uint>([0, 2, 1, 0, 3, 2]), 0, 6);
 		
-			legalWidth = nextPowerOfTwo(_width);
-			legalHeight = nextPowerOfTwo(_height);
+			legalWidth = getNextPowerOfTwo(_width);
+			legalHeight = getNextPowerOfTwo(_height);
 			
 			lightMapIn = context.createTexture(legalWidth, legalHeight, Context3DTextureFormat.BGRA, true);
 			lightMapOut = context.createTexture(legalWidth, legalHeight, Context3DTextureFormat.BGRA, true);
@@ -138,7 +150,7 @@ package starling.extensions.lighting.core
 			
 			directionalLightShadowShader = new DirectionalLightShadowShader();
 			
-			blurShader = new GaussianBlurShader(legalWidth, legalHeight, _shadowSoftness >= 1 ? _shadowSoftness : 1);
+			blurShader = new GaussianBlurShader(legalWidth, legalHeight, _shadowSoftness >= 1 ? _shadowSoftness : 0 );
 			blurShader.setDependencies(lightMapIn, lightMapOut, sceneVertexBuffer, sceneUVBuffer);
 
 			sceneShader = new LightMapShader(_width / legalWidth, _height / legalHeight);
@@ -211,7 +223,11 @@ package starling.extensions.lighting.core
 			var context:Context3D = Starling.context;
 			
 			support.finishQuadBatch();
-			if(geometry.length > 0) projectGeometry();
+			
+			if (geometry.length > 0)
+			{
+				projectGeometry();
+			}
 			
 			context.setRenderToTexture(lightMapIn, true);
 			context.setScissorRectangle(new Rectangle(0, 0, _width, _height));
@@ -223,12 +239,12 @@ package starling.extensions.lighting.core
 			
 			for each(var l:LightBase in lights)
 			{
-				renderLight(l, context);
+				renderLight(support, l, context);
 			}
+				
+			renderLightMap(support, context);
 			
-			renderLightMap(context);
-			
-			context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
+			context.setBlendFactors(Context3DBlendFactor.ZERO, Context3DBlendFactor.ZERO);
 			context.setVertexBufferAt(0, null);
 			context.setVertexBufferAt(1, null);
 			context.setTextureAt(0, null);
@@ -240,15 +256,15 @@ package starling.extensions.lighting.core
 			const INDICES_PER_EDGE:uint = 6;
 
 			var context:Context3D = Starling.context;
-			var vertices:Vector.<Number> = new <Number>[];
-			var indices:Vector.<uint> = new <uint>[];
-
-			var totalEdgeCount:uint = 0;
 			var localEdgeCount:uint = 0;
 
 			var edges:Vector.<Edge>;
 			var indexOffset:uint = 0;
 			var needsNewBuffer:Boolean;
+			
+			vertices.length = 0;
+			indices.length = 0;
+			totalEdgeCount = 0;
 			
 			for each(var shadowGeometry:ShadowGeometry in geometry)
 			{
@@ -274,7 +290,7 @@ package starling.extensions.lighting.core
 			
 			geometryVertexCount = totalEdgeCount * VERTICES_PER_EDGE;
 			
-			if(needsNewBuffer)
+			if (needsNewBuffer)
 			{
 				if(geometryVertexBuffer) geometryVertexBuffer.dispose();
 				geometryVertexBuffer = context.createVertexBuffer(geometryVertexCount, 3);
@@ -285,14 +301,18 @@ package starling.extensions.lighting.core
 			
 			geometryVertexBuffer.uploadFromVector(vertices, 0, geometryVertexCount);
 			geometryIndexBuffer.uploadFromVector(indices, 0, indices.length);
-		}
+		}		
 
-		private function renderLight(light:LightBase, context:Context3D):void
+		private function renderLight(support:RenderSupport, light:LightBase, context:Context3D):void
 		{
 			context.setDepthTest(false, Context3DCompareMode.ALWAYS);
 			
-			if(geometry.length > 0) shadowPass(light, context);
-			lightPass(light, context);
+			if (geometry.length > 0)
+			{
+				shadowPass(support, light, context);
+			}
+			
+			lightPass(support, light, context);
 			
 			context.clear(0, 0, 0, 1, 1, 0, Context3DClearMask.STENCIL);
 			context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
@@ -301,7 +321,7 @@ package starling.extensions.lighting.core
 			context.setDepthTest(true, Context3DCompareMode.LESS);
 		}
 
-		private function shadowPass(light:LightBase, context:Context3D):void
+		private function shadowPass(support:RenderSupport, light:LightBase, context:Context3D):void
 		{
 			switch(true)
 			{
@@ -326,9 +346,10 @@ package starling.extensions.lighting.core
 			context.setColorMask(false, false, false, false);
 			
 			context.drawTriangles(geometryIndexBuffer);
+			support.raiseDrawCount(1);
 		}
 
-		private function lightPass(light:LightBase, context:Context3D):void
+		private function lightPass(support:RenderSupport, light:LightBase, context:Context3D):void
 		{
 			switch(true)
 			{
@@ -354,10 +375,13 @@ package starling.extensions.lighting.core
 			context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ONE);			
 			
 			context.drawTriangles(sceneIndexBuffer);
+			support.raiseDrawCount(1);
 		}
 
-		private function renderLightMap(context:Context3D):void
+		private function renderLightMap(support:RenderSupport, context:Context3D):void
 		{
+			//context.setRenderToTexture(lightMapOut);
+			//context.setTextureAt(0, lightMapIn);
 			blurShader.activate(context);
 			context.drawTriangles(sceneIndexBuffer);
 			
@@ -371,17 +395,28 @@ package starling.extensions.lighting.core
 			sceneShader.activate(context);
 			context.setBlendFactors(Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ZERO);
 			context.drawTriangles(sceneIndexBuffer);
+			
+			support.raiseDrawCount(3);
+		}
+		
+		public function copyGeometryFrom(layer:LightLayer):void
+		{
+			geometry.length = 0;
+			geometry.concat(layer.geometry);
 		}
 
 		override public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle = null):Rectangle
 		{
-			var rect:Rectangle = new Rectangle(0, 0, _width, _height);
-
-			return rect;
+			_boundsRect.setTo(0, 0, _width, _height);
+			
+			return _boundsRect;
 		}
 
 		public override function dispose():void
 		{
+			lights.length = 0;
+			geometry.length = 0;
+			
 			sceneVertexBuffer.dispose();
 			sceneUVBuffer.dispose();
 			sceneIndexBuffer.dispose();
@@ -390,19 +425,6 @@ package starling.extensions.lighting.core
 			geometryIndexBuffer.dispose();
 			
 			lightMapIn.dispose();
-		}
-
-		private function nextPowerOfTwo(n:uint):uint
-		{
-			n = n - 1;
-			n = n | (n >> 1);
-			n = n | (n >> 2);
-			n = n | (n >> 4);
-			n = n | (n >> 8);
-			n = n | (n >> 16);
-			n = n + 1;
-			
-			return n;
 		}
 	}
 }
