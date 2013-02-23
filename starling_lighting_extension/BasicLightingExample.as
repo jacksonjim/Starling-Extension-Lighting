@@ -94,7 +94,7 @@ package
 			
 			addEventListener(EnterFrameEvent.ENTER_FRAME, update);
 			nativeStage.addEventListener(MouseEvent.CLICK, clickHandler);
-			nativeStage.addEventListener(KeyboardEvent.KEY_UP, keyPressedHandler);
+			nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, keyPressedHandler);
 		}
 
 		private function createLights():void
