@@ -88,6 +88,10 @@ package
 			addChild(lightLayer);
 			addChild(statusPanel);
 			
+            statusPanel.x = nativeStageWidth - statusPanel.width;
+			
+			trace(statusPanel.x, nativeStageWidth);
+			
 			addEventListener(EnterFrameEvent.ENTER_FRAME, update);
 			nativeStage.addEventListener(MouseEvent.CLICK, clickHandler);
 			nativeStage.addEventListener(KeyboardEvent.KEY_UP, keyPressedHandler);
@@ -257,7 +261,7 @@ package
 			*/
 		}
 		
-		private function createStatusPanel(w:int = 360, h:int = 40):Sprite
+		private function createStatusPanel(w:int = 150, h:int = 40):Sprite
 		{
 			var container:Sprite = new Sprite();
 		    var background:Quad;
@@ -272,9 +276,7 @@ package
             container.addChild(background);
             container.addChild(textField);
 			
-            blendMode = BlendMode.NONE;
-			
-            container.x = nativeStageWidth - w;
+            container.blendMode = BlendMode.NONE;
 			return container;
 		}
 		
@@ -282,6 +284,7 @@ package
 			var textField:TextField = container.getChildAt(1) as TextField;
 
 			if (!textField) return;
+			
 			textField.text = formatString(statusString, geometry ? geometry.length : 0, lights ? lights.length : 0);
 		}
 	}
