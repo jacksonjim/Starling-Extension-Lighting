@@ -2,9 +2,8 @@ package starling.extensions.lighting.geometry
 {
 	import starling.extensions.lighting.core.Edge;
 	import starling.extensions.lighting.core.ShadowGeometry;
+	import starling.extensions.lighting.core.display.Polygon;
 	import starling.utils.VertexData;
-
-	import com.zadvorsky.displayObjects.RegularPolygon;
 
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
@@ -14,20 +13,20 @@ package starling.extensions.lighting.geometry
 	/**
 	 * @author Szenia Zadvornykh
 	 */
-	public class RegularPolygonShadowGeometry extends ShadowGeometry
+	public class PolygonShadowGeometry extends ShadowGeometry
 	{
 		/**
-		 * subclass of ShadowGeometry that creates shadow geometry matching the vertex data of a RegularPolygon
-		 * @param displayObject RegularPolygon instance the shadow geometry will be created for
+		 * subclass of ShadowGeometry that creates shadow geometry matching the vertex data of a Polygon
+		 * @param displayObject Polygon instance the shadow geometry will be created for
 		 */
-		public function RegularPolygonShadowGeometry(displayObject:RegularPolygon)
+		public function PolygonShadowGeometry(displayObject:Polygon)
 		{
 			super(displayObject);
 		}
 		
 		override protected function createEdges():Vector.<Edge>
 		{
-			var polygon:RegularPolygon = displayObject as RegularPolygon;
+			var polygon:Polygon = displayObject as Polygon;
 			var vertexData:VertexData = polygon.vertexData;
 			var numEdges:int = vertexData.numVertices - 1 / 2;
 			

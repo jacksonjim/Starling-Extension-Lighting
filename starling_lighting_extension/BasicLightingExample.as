@@ -1,8 +1,5 @@
 package 
 {
-	import com.zadvorsky.displayObjects.RegularPolygon;
-	import flash.display.BitmapData;
-	import flash.geom.Point;
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
@@ -11,7 +8,9 @@ package
 	import starling.events.Event;
 	import starling.extensions.lighting.core.LightBase;
 	import starling.extensions.lighting.core.LightLayer;
-	import starling.extensions.lighting.geometry.RegularPolygonShadowGeometry;
+	import starling.extensions.lighting.core.display.Polygon;
+	import starling.extensions.lighting.geometry.QuadShadowGeometry;
+	import starling.extensions.lighting.geometry.PolygonShadowGeometry;
 	import starling.extensions.lighting.lights.DirectionalLight;
 	import starling.extensions.lighting.lights.PointLight;
 	import starling.extensions.lighting.lights.SpotLight;
@@ -26,6 +25,8 @@ package
 	import starling.utils.formatString;
 
 	import flash.display.Stage;
+	import flash.display.BitmapData;
+	import flash.geom.Point;
 	import flash.events.MouseEvent;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
@@ -38,19 +39,21 @@ package
 		private var lightLayer:LightLayer;
 		private var objectsLayer:Sprite;
 		
+		private var objectClassDefault:Class = Quad;
+		
 		private var mouseLight:PointLight;
 		private var lights:Vector.<LightBase>;
 		
 		private var geometry:Vector.<DisplayObject>;
 				
 		private var nativeStage:Stage;
-		private var nativeStageWidth:int = 1000;
-		private var nativeStageHeight:int = 1000;
+		private var nativeStageWidth:int = 800;
+		private var nativeStageHeight:int = 600;
 		
 		private var helperPoint:Point = new Point();
 		
 		private var statusPanel:Sprite;
-		private var statusString:String = "Press 'Space' to add a new object.\nClick to add a new light.\n\nObjects: {0}\nLights: {1}";
+		private var statusString:String = "Press 'Z' to add a new Polygon.\nPress 'X' to add a new Quad.\nClick to add a new light.\n\nObjects: {0}\nLights: {1}";
 		
 		public function BasicLightingExample()
 		{
@@ -89,8 +92,6 @@ package
 			addChild(statusPanel);
 			
             statusPanel.x = nativeStageWidth - statusPanel.width;
-			
-			trace(statusPanel.x, nativeStageWidth);
 			
 			addEventListener(EnterFrameEvent.ENTER_FRAME, update);
 			nativeStage.addEventListener(MouseEvent.CLICK, clickHandler);
@@ -148,36 +149,46 @@ package
 			}
 		}
 		
-		private function addObject():void
+		private function addObject(useClass:Class = null):void
 		{
-			var polygon:RegularPolygon;
-			var r:int;
-			var v:int;
+			var object:DisplayObject;
+			var color:int = Math.random() * 0xffffff;
+			var objectClass:Class = useClass ? useClass : objectClassDefault;
 			
-			r = 10 + Math.round(Math.random() * 10);
-			v = 3 + Math.round(Math.random() * 3);
+			if (objectClass == Polygon) {
+				var r:int = 10 + Math.round(Math.random() * 10);
+				var v:int = 3 + Math.round(Math.random() * 3);
 
-			polygon = new RegularPolygon(r, v, Math.random() * 0xffffff);
-			polygon.pivotX = polygon.width >> 1;
-			polygon.pivotY = polygon.height >> 1;
-			polygon.x = Math.random() * nativeStageWidth;
-			polygon.y = Math.random() * nativeStageHeight;
+				object = new Polygon(r, v, color);
+				
+				//this takes the bounding box of the object to create geometry that blocks light
+				//the PolygonShadowGeometry class also accepts Images
+				//if you want to create more complex geometry for a display object, 
+				//you can make your own ShadowGeometry subclass, and override the createEdges method
+				lightLayer.addShadowGeometry(new PolygonShadowGeometry(object as Polygon));
+			} else if (objectClass == Quad) {
+				var w:int = 10 + Math.round(Math.random() * 10);
+				
+				object = new Quad(w, w, color);
+				
+				lightLayer.addShadowGeometry(new QuadShadowGeometry(object as Quad));
+			}
 			
-			//this takes the bounding box of the object to create geometry that blocks light
-			//the RegularPolygonShadowGeometry class also accepts Images
-			//if you want to create more complex geometry for a display object, 
-			//you can make your own ShadowGeometry subclass, and override the createEdges method
-			lightLayer.addShadowGeometry(new RegularPolygonShadowGeometry(polygon));
+			object.pivotX = object.width >> 1;
+			object.pivotY = object.height >> 1;
+			object.x = Math.random() * nativeStageWidth;
+			object.y = Math.random() * nativeStageHeight;
 			
 			//add the object to the stage
 			//the object will cast shadows even if it is not on the display list (I might change this later)
 			//to remove shadow geometry assosiated with a display object, call LightLayer.removeGeometryForDisplayObject 			
-			objectsLayer.addChild(polygon);
+			objectsLayer.addChild(object);
 			
-			scaleObject(polygon);
-			moveObject(polygon);
+			scaleObject(object);
+			moveObject(object);
 			
-			geometry.push(polygon);
+			geometry.push(object);
+			
 			updateStatus(statusPanel);
 		}
 		
@@ -233,8 +244,11 @@ package
 			var key:uint = event.keyCode;
 
 			switch (key) {
-				case Keyboard.SPACE :
-					addObject();
+				case Keyboard.Z :
+					addObject(Polygon);
+					break;
+				case Keyboard.X :
+					addObject(Quad);
 					break;
 			}
 		}
@@ -261,7 +275,7 @@ package
 			*/
 		}
 		
-		private function createStatusPanel(w:int = 150, h:int = 40):Sprite
+		private function createStatusPanel(w:int = 150, h:int = 50):Sprite
 		{
 			var container:Sprite = new Sprite();
 		    var background:Quad;
