@@ -16,8 +16,7 @@ package starling.extensions.lighting.util
 		{
 			var v:Vector3D = targetVector ? targetVector : new Vector3D();
 			
-			v.x = Math.cos(rad);
-			v.y = Math.sin(rad);
+			v.setTo(Math.cos(rad), Math.sin(rad), v.z);
 			
 			return v;
 		}

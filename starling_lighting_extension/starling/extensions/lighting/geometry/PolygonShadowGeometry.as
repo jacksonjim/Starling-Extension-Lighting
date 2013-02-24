@@ -32,21 +32,18 @@ package starling.extensions.lighting.geometry
 			
 			var edges:Vector.<Edge> = new <Edge>[];
 			
-			var current:Point = new Point();
-			var next:Point = new Point();
-			
 			for (var i:int = 0; i < numEdges - 1; i++)
 			{
-				vertexData.getPosition(i, current);
-				vertexData.getPosition(i + 1, next);
+				vertexData.getPosition(i, start);
+				vertexData.getPosition(i + 1, end);
 				
-				edges.push(new Edge(new Point(current.x, current.y),new Point(next.x, next.y)));
+				edges.push(new Edge(start.x, start.y, end.x, end.y));					
 			}
 			
-			vertexData.getPosition(i, current);
-			vertexData.getPosition(0, next);
+			vertexData.getPosition(i, start);
+			vertexData.getPosition(0, end);
 			
-			edges.push(new Edge(new Point(current.x, current.y),new Point(next.x, next.y)));
+			edges.push(new Edge(start.x, start.y, end.x, end.y));
 			
 			return edges;
 		}

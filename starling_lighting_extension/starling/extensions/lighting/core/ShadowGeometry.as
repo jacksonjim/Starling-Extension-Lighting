@@ -11,6 +11,9 @@ package starling.extensions.lighting.core
 	 */
 	public class ShadowGeometry
 	{
+		protected static var start:Point = new Point();
+		protected static var end:Point = new Point();
+		
 		private var _modelEdges:Vector.<Edge>;
 		private var _worldEdges:Vector.<Edge>;
 		
@@ -20,7 +23,7 @@ package starling.extensions.lighting.core
 		
 		/**
 		 * abstract baseclass to hold geometry used for shadow casting
-		 * do NOT use this class, instead use QuadShadowGeometry, RegularPolygonShadowGeometry or your own implementation
+		 * do NOT use this class, instead use QuadShadowGeometry, PolygonShadowGeometry or your own implementation
 		 */
 		public function ShadowGeometry(displayObject:DisplayObject)
 		{
@@ -31,10 +34,14 @@ package starling.extensions.lighting.core
 			_modelEdges = createEdges();
 			_worldEdges = new <Edge>[];
 			
-			for each(var edge:Edge in _modelEdges)
+			var edge:Edge;
+			var length:int = _modelEdges.length - 1;
+			
+			for (var i:int = length; i >= 0; i--)
 			{
-				_worldEdges.push(new Edge(new Point(), new Point()));
+				_worldEdges.push(new Edge());
 			}
+			
 			//transform();
 		}
 		
@@ -54,17 +61,26 @@ package starling.extensions.lighting.core
 			
 			var modelEdge:Edge;
 			var worldEdge:Edge;
+			var length:int = _modelEdges.length;
 			
-			for (var i:int; i < _modelEdges.length; i++)
+			for (var i:int = length-1; i >=0; i--)
 			{
 				modelEdge = _modelEdges[i];
 				worldEdge = _worldEdges[i];
 				
-				worldEdge.start = tempTransformationMatrix.transformPoint(modelEdge.start);
-				worldEdge.end = tempTransformationMatrix.transformPoint(modelEdge.end);
+				start.setTo(modelEdge.startX, modelEdge.startY);
+				transformPoint(start, tempTransformationMatrix);
+				
+				end.setTo(modelEdge.endX, modelEdge.endY);
+				transformPoint(end, tempTransformationMatrix);
+
+				worldEdge.startX = start.x;
+				worldEdge.startY = start.y;
+				worldEdge.endX = end.x;
+				worldEdge.endY = end.y;
 			}
 		}
-
+		
 		final public function get worldEdges():Vector.<Edge>
 		{
 			return _worldEdges;
@@ -81,6 +97,14 @@ package starling.extensions.lighting.core
 			_modelEdges = null;
 			_worldEdges = null;
 			tempTransformationMatrix = null;
+		}
+		
+		final private function transformPoint(point:Point, matrix:Matrix):void
+		{
+			if (point && matrix)
+			{
+				point.setTo(matrix.a * point.x + matrix.c * point.y + matrix.tx, matrix.b * point.x + matrix.d * point.y + matrix.ty);
+			}
 		}
 	}
 }

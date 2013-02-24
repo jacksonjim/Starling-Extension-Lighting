@@ -53,7 +53,7 @@ package
 		private var helperPoint:Point = new Point();
 		
 		private var statusPanel:Sprite;
-		private var statusString:String = "Press 'Z' to add a new Polygon.\nPress 'X' to add a new Quad.\nClick to add a new light.\n\nObjects: {0}\nLights: {1}";
+		private var statusString:String = "Press 'Z' to add a new Polygon.\nPress 'X' to add a new Quad.\nPress 'C' to remove some objects.\nClick to add a new light.\n\nObjects: {0}\nLights: {1}";
 		
 		public function BasicLightingExample()
 		{
@@ -143,66 +143,97 @@ package
 			geometry = new <DisplayObject>[];
 			
 			//create an arbitrary number of objects to act as shadow geometry
-			for(var i:int; i < 20; i++)
-			{
-				addObject();
-			}
+			addObjects();
 		}
 		
-		private function addObject(useClass:Class = null):void
+		private function addObjects(useClass:Class = null, count:int = 20):void
 		{
 			var object:DisplayObject;
-			var color:int = Math.random() * 0xffffff;
+			var color:int;
 			var objectClass:Class = useClass ? useClass : objectClassDefault;
 			
-			if (objectClass == Polygon) {
-				var r:int = 10 + Math.round(Math.random() * 10);
-				var v:int = 3 + Math.round(Math.random() * 3);
+			for (var i:int = count - 1; i >= 0; i--)
+			{
+				color = Math.random() * 0xffffff;
+				
+				if (objectClass == Polygon) {
+					var r:int = 10 + Math.round(Math.random() * 10);
+					var v:int = 3 + Math.round(Math.random() * 3);
 
-				object = new Polygon(r, v, color);
+					object = new Polygon(r, v, color);
+					
+					//this takes the bounding box of the object to create geometry that blocks light
+					//the PolygonShadowGeometry class also accepts Images
+					//if you want to create more complex geometry for a display object, 
+					//you can make your own ShadowGeometry subclass, and override the createEdges method
+					lightLayer.addShadowGeometry(new PolygonShadowGeometry(object as Polygon));
+				} else if (objectClass == Quad) {
+					var w:int = 10 + Math.round(Math.random() * 10);
+					
+					object = new Quad(w, w, color);
+					
+					lightLayer.addShadowGeometry(new QuadShadowGeometry(object as Quad));
+				}
 				
-				//this takes the bounding box of the object to create geometry that blocks light
-				//the PolygonShadowGeometry class also accepts Images
-				//if you want to create more complex geometry for a display object, 
-				//you can make your own ShadowGeometry subclass, and override the createEdges method
-				lightLayer.addShadowGeometry(new PolygonShadowGeometry(object as Polygon));
-			} else if (objectClass == Quad) {
-				var w:int = 10 + Math.round(Math.random() * 10);
+				object.pivotX = object.width >> 1;
+				object.pivotY = object.height >> 1;
 				
-				object = new Quad(w, w, color);
+				object.x = Math.random() * nativeStageWidth;
+				object.y = Math.random() * nativeStageHeight;
 				
-				lightLayer.addShadowGeometry(new QuadShadowGeometry(object as Quad));
+				//add the object to the stage
+				//the object will cast shadows even if it is not on the display list (I might change this later)
+				//to remove shadow geometry assosiated with a display object, call LightLayer.removeGeometryForDisplayObject 			
+				objectsLayer.addChild(object);
+				
+				scaleObject(object);
+				moveObject(object);
+				
+				geometry.push(object);
 			}
-			
-			object.pivotX = object.width >> 1;
-			object.pivotY = object.height >> 1;
-			object.x = Math.random() * nativeStageWidth;
-			object.y = Math.random() * nativeStageHeight;
-			
-			//add the object to the stage
-			//the object will cast shadows even if it is not on the display list (I might change this later)
-			//to remove shadow geometry assosiated with a display object, call LightLayer.removeGeometryForDisplayObject 			
-			objectsLayer.addChild(object);
-			
-			scaleObject(object);
-			moveObject(object);
-			
-			geometry.push(object);
 			
 			updateStatus(statusPanel);
 		}
 		
-		private function scaleObject(object:DisplayObject, up:Boolean = false):void {
-			Starling.juggler.tween(object, 1 + Math.round(Math.random() * 2), {
-				transition: Transitions.EASE_IN_OUT_ELASTIC,
-				scaleX: up ? 1 : 0.5,
-				scaleY: up ? 1 : 0.5,
+		private function removeObjects(count:int = 20):void
+		{
+			if (geometry.length < count) {
+				return;
+			}
+			
+			var object:DisplayObject;
+			
+			for (var i:int = count - 1; i >= 0; i--)
+			{
+				object = geometry.shift();
+				objectsLayer.removeChild(object);
+				lightLayer.removeGeometryForDisplayObject(object);
 				
-				onComplete: function():void {
-					scaleObject(object, !up);
-				}
-			});
+				object = null;
+			}
+			
+			updateStatus(statusPanel);
 		}
+		
+		private var scaleOptions:Object = {
+				transition: Transitions.EASE_IN_OUT_ELASTIC,
+				onComplete: scaleObject,
+				onCompleteArgs: []
+			};
+		
+		private function scaleObject(object:DisplayObject, up:Boolean = false):void {
+			scaleOptions.scaleX = up ? 1 : 0.5;
+			scaleOptions.scaleY = up ? 1 : 0.5;
+			scaleOptions.onCompleteArgs = [object, !up];
+			
+			Starling.juggler.tween(object, 1 + Math.round(Math.random() * 2), scaleOptions);
+		}
+		
+		private var moveOptions:Object = {
+				transition: Transitions.EASE_OUT,
+				onComplete: moveObject,
+				onCompleteArgs: []
+			};
 
 		private function moveObject(object:DisplayObject):void {
 			var nX:Number = Math.random() * nativeStageWidth;
@@ -218,15 +249,11 @@ package
 			
 			var time:Number = 1 + Math.round(10 * Math.abs(l1 - l2) / Math.max(nativeStageWidth, nativeStageHeight));
 			
-			Starling.juggler.tween(object, time, {
-				transition: Transitions.EASE_OUT,
-				x: nX,
-				y: nY,
-				
-				onComplete: function():void {
-					moveObject(object);
-				}
-			});
+			moveOptions.x = nX;
+			moveOptions.y = nY;
+			moveOptions.onCompleteArgs = [object];
+			
+			Starling.juggler.tween(object, time, moveOptions);
 		}
 
 		private function clickHandler(event:MouseEvent):void
@@ -245,10 +272,13 @@ package
 
 			switch (key) {
 				case Keyboard.Z :
-					addObject(Polygon);
+					addObjects(Polygon);
 					break;
 				case Keyboard.X :
-					addObject(Quad);
+					addObjects(Quad);
+					break;
+				case Keyboard.C :
+					removeObjects();
 					break;
 			}
 		}
@@ -275,7 +305,7 @@ package
 			*/
 		}
 		
-		private function createStatusPanel(w:int = 150, h:int = 50):Sprite
+		private function createStatusPanel(w:int = 155, h:int = 60):Sprite
 		{
 			var container:Sprite = new Sprite();
 		    var background:Quad;

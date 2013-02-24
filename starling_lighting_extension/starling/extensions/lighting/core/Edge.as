@@ -7,19 +7,23 @@ package starling.extensions.lighting.core
 	 */
 	public class Edge 
 	{
-		public var start:Point;
-		public var end:Point;
+		public var startX:Number;
+		public var startY:Number;
+		public var endX:Number;
+		public var endY:Number;
 		/**
 		 * simple class to hold the start and end points of an edge used for shadow casting
 		 */
-		public function Edge(_start:Point, _end:Point)
+		public function Edge(_startX:Number = 0, _startY:Number = 0, _endX:Number = 0, _endY:Number = 0)
 		{
-			start =_start;
-			end = _end;
+			startX = _startX;
+			startY = _startY;
+			endX = _endX;
+			endY = _endY;
 		}
 		public function toString():String
 		{
-			return "start (" + start.x + ", " + start.y + ") end (" + end.x + ", " + end.y + ")";
+			return "start (" + startX + ", " + startY + ") end (" + endX + ", " + endY + ")";
 		}
 	}
 }

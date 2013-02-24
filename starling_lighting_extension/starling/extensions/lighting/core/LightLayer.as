@@ -171,9 +171,14 @@ package starling.extensions.lighting.core
 		 */
 		public function removeGeometryForDisplayObject(object:DisplayObject):void
 		{
-			for each(var g:ShadowGeometry in geometry)
+			var g:ShadowGeometry;
+			var length:int = geometry.length - 1;
+			
+			for (var i:int = length; i >= 0; i--)
 			{
-				if(g.displayObject == object)
+				g = geometry[i];
+				
+				if(g && g.displayObject == object)
 				{
 					removeShadowGeometry(g);
 					return;
@@ -237,9 +242,17 @@ package starling.extensions.lighting.core
 			context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 2, projectionMatrix, true);
 			context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, Vector.<Number>([1, 1, 1, 1]));
 			
-			for each(var l:LightBase in lights)
+			var l:LightBase;
+			var length:int = lights.length - 1;
+			
+			for (var i:int = length; i >= 0; i--)
 			{
-				renderLight(support, l, context);
+				l = lights[i];
+				
+				if (l)
+				{
+					renderLight(support, l, context);
+				}
 			}
 				
 			renderLightMap(support, context);
@@ -266,24 +279,32 @@ package starling.extensions.lighting.core
 			indices.length = 0;
 			totalEdgeCount = 0;
 			
-			for each(var shadowGeometry:ShadowGeometry in geometry)
+			var shadowGeometry:ShadowGeometry;
+			var length:int = geometry.length - 1;
+			
+			for (var i:int = length; i >= 0; i--)
 			{
-				shadowGeometry.transform();
-
-				edges = shadowGeometry.worldEdges;
-				localEdgeCount = edges.length;
-				totalEdgeCount += localEdgeCount;
+				shadowGeometry = geometry[i];
 				
-				for (var i:uint = 0; i < localEdgeCount; i++)
+				if (shadowGeometry)
 				{
-					var index:uint = i * VERTICES_PER_EDGE + indexOffset;
-					var edge:Edge = edges[i];
-				
-					vertices.push(edge.start.x, edge.start.y, 0, edge.end.x, edge.end.y, 0, edge.end.x, edge.end.y, 1, edge.start.x, edge.start.y, 1);
-					indices.push(index, index + 2, index + 1, index, index + 3, index + 2);
+					shadowGeometry.transform();
+
+					edges = shadowGeometry.worldEdges;
+					localEdgeCount = edges.length;
+					totalEdgeCount += localEdgeCount;
+					
+					for (var j:int = localEdgeCount - 1; j >= 0; j--)
+					{
+						var index:uint = j * VERTICES_PER_EDGE + indexOffset;
+						var edge:Edge = edges[j];
+					
+						vertices.push(edge.startX, edge.startY, 0, edge.endX, edge.endY, 0, edge.endX, edge.endY, 1, edge.startX, edge.startY, 1);
+						indices.push(index, index + 2, index + 1, index, index + 3, index + 2);
+					}
+					
+					indexOffset += (localEdgeCount * VERTICES_PER_EDGE);
 				}
-				
-				indexOffset += (localEdgeCount * VERTICES_PER_EDGE);
 			}
 			
 			needsNewBuffer = !(geometryVertexCount == totalEdgeCount * VERTICES_PER_EDGE);
