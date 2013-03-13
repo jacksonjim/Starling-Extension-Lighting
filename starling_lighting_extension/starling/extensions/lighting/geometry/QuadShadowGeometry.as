@@ -4,11 +4,10 @@ package starling.extensions.lighting.geometry
 	import starling.extensions.lighting.core.Edge;
 	import starling.extensions.lighting.core.ShadowGeometry;
 	import starling.utils.VertexData;
-
+	
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
-
-
+	
 	/**
 	 * @author Szenia Zadvornykh
 	 */
@@ -25,25 +24,24 @@ package starling.extensions.lighting.geometry
 		{
 			super(displayObject);
 		}
-
+		
 		override protected function createEdges():Vector.<Edge>
 		{
 			var quad:Quad = displayObject as Quad;
 			var vertexData:VertexData = new VertexData(4);
-			quad.copyVertexDataTo(vertexData);
-			
 			var edges:Vector.<Edge> = new <Edge>[];
-			
 			var index:int;
 			
-			for(var i:int; i < numEdges; i++)
+			quad.copyVertexDataTo(vertexData);
+			
+			for (var i:int; i < numEdges; i++)
 			{
 				index = i * 2;
 				
-				vertexData.getPosition(indices[index], start)		
+				vertexData.getPosition(indices[index], start)
 				vertexData.getPosition(indices[index + 1], end);
 				
-				edges.push(new Edge(start.x, start.y, end.x, end.y));		
+				edges.push(new Edge(start.x, start.y, end.x, end.y));
 			}
 			
 			return edges;

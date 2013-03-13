@@ -1,6 +1,5 @@
 package starling.extensions.lighting.core
 {
-	import flash.geom.Point;
 	/**
 	 * ...
 	 * @author UG
@@ -11,6 +10,7 @@ package starling.extensions.lighting.core
 		public var startY:Number;
 		public var endX:Number;
 		public var endY:Number;
+		
 		/**
 		 * simple class to hold the start and end points of an edge used for shadow casting
 		 */
@@ -21,6 +21,7 @@ package starling.extensions.lighting.core
 			endX = _endX;
 			endY = _endY;
 		}
+		
 		public function toString():String
 		{
 			return "start (" + startX + ", " + startY + ") end (" + endX + ", " + endY + ")";

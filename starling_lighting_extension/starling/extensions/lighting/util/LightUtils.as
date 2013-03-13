@@ -2,6 +2,7 @@ package starling.extensions.lighting.util
 {
 	import starling.utils.deg2rad;
 	import flash.geom.Vector3D;
+	
 	/**
 	 * @author Szenia Zadvornykh
 	 */

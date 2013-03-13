@@ -1,12 +1,12 @@
 package starling.extensions.lighting.shaders
 {
 	import starling.extensions.lighting.lights.DirectionalLight;
-
+	
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.VertexBuffer3D;
-
+	
 	/**
 	 * @author Szenia
 	 */
@@ -20,16 +20,16 @@ package starling.extensions.lighting.shaders
 		public function DirectionalLightShader()
 		{
 			super(NAME);
-
+			
 			params = new Vector.<Number>(4);
-
+			
 			params[3] = 1;
 		}
 		
 		public function setDependencies(vertexBuffer:VertexBuffer3D):void
 		{
 			_vertexBuffer = vertexBuffer;
-			
+		
 		}
 		
 		public function set light(light:DirectionalLight):void
@@ -38,7 +38,7 @@ package starling.extensions.lighting.shaders
 			params[1] = light.green;
 			params[2] = light.blue;
 		}
-				
+		
 		override protected function activateHook(context:Context3D):void
 		{
 			context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, params);
@@ -48,9 +48,8 @@ package starling.extensions.lighting.shaders
 		override protected function vertexShaderProgram():String
 		{
 			var program:String =
-			
-			"mov op, va0 \n" +
-			"";
+				
+				"mov op, va0 \n" + "";
 			
 			return program;
 		}
@@ -59,9 +58,8 @@ package starling.extensions.lighting.shaders
 		{
 			//fc1 = [red, green, blue, 1]
 			var program:String =
-			
-			"mov oc, fc1 \n" +
-			"";
+				
+				"mov oc, fc1 \n" + "";
 			
 			return program;
 		}

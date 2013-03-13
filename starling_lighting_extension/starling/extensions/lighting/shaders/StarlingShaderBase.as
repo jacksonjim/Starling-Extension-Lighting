@@ -3,9 +3,9 @@ package starling.extensions.lighting.shaders
 	import starling.core.Starling;
 	import starling.errors.AbstractMethodError;
 	import starling.extensions.lighting.core.LightLayer;
-
+	
 	import com.adobe.utils.AGALMiniAssembler;
-
+	
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Program3D;
@@ -17,6 +17,7 @@ package starling.extensions.lighting.shaders
 	public class StarlingShaderBase
 	{
 		protected var _name:String;
+		protected var _programAssembler:AGALMiniAssembler;
 		
 		/**
 		 * abstract baseclass wrapping shader code and registration with Starling
@@ -24,6 +25,7 @@ package starling.extensions.lighting.shaders
 		public function StarlingShaderBase(name:String)
 		{
 			_name = name;
+			_programAssembler = new AGALMiniAssembler();
 			
 			register();
 		}
@@ -32,32 +34,31 @@ package starling.extensions.lighting.shaders
 		{
 			var target:Starling = Starling.current;
 			
-			if(target.hasProgram(_name)) return;
-
+			if (target.hasProgram(_name))
+				return;
+			
 			target.registerProgram(_name, assembleVertexShader(), assembleFragmentShader());
 		}
-
+		
 		private function assembleVertexShader():ByteArray
 		{
-			var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexShaderProgram());
-
-			return vertexProgramAssembler.agalcode;
+			_programAssembler.assemble(Context3DProgramType.VERTEX, vertexShaderProgram());
+			
+			return _programAssembler.agalcode;
 		}
-
+		
 		protected function vertexShaderProgram():String
 		{
 			throw new AbstractMethodError();
 		}
-
+		
 		private function assembleFragmentShader():ByteArray
 		{
-			var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShaderProgram());
-
-			return fragmentProgramAssembler.agalcode;
+			_programAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShaderProgram());
+			
+			return _programAssembler.agalcode;
 		}
-
+		
 		protected function fragmentShaderProgram():String
 		{
 			throw new AbstractMethodError();
@@ -73,7 +74,7 @@ package starling.extensions.lighting.shaders
 			
 			activateHook(context);
 		}
-
+		
 		protected function activateHook(context:Context3D):void
 		{
 		}

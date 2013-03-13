@@ -4,12 +4,10 @@ package starling.extensions.lighting.geometry
 	import starling.extensions.lighting.core.ShadowGeometry;
 	import starling.extensions.lighting.core.display.Polygon;
 	import starling.utils.VertexData;
-
+	
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
-
-
-
+	
 	/**
 	 * @author Szenia Zadvornykh
 	 */
@@ -37,7 +35,7 @@ package starling.extensions.lighting.geometry
 				vertexData.getPosition(i, start);
 				vertexData.getPosition(i + 1, end);
 				
-				edges.push(new Edge(start.x, start.y, end.x, end.y));					
+				edges.push(new Edge(start.x, start.y, end.x, end.y));
 			}
 			
 			vertexData.getPosition(i, start);
