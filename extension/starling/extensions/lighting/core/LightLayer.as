@@ -278,9 +278,10 @@ package starling.extensions.lighting.core
 			var edges:Vector.<Edge>, edge:Edge;
 			var indexOffset:uint = 0, index:uint;
 			var needsNewBuffer:Boolean;
+
+			var verticesCount:int = 0;
+			var indicesCount:int = 0;
 			
-			vertices.length = 0;
-			indices.length = 0;
 			totalEdgeCount = 0;
 			
 			var shadowGeometry:ShadowGeometry;
@@ -303,8 +304,25 @@ package starling.extensions.lighting.core
 						index = j * VERTICES_PER_EDGE + indexOffset;
 						edge = edges[j];
 						
-						vertices.push(edge.startX, edge.startY, 0, edge.endX, edge.endY, 0, edge.endX, edge.endY, 1, edge.startX, edge.startY, 1);
-						indices.push(index, index + 2, index + 1, index, index + 3, index + 2);
+						vertices[verticesCount++] = edge.startX;
+						vertices[verticesCount++] = edge.startY;
+						vertices[verticesCount++] = 0;
+						vertices[verticesCount++] = edge.endX;
+						vertices[verticesCount++] = edge.endY;
+						vertices[verticesCount++] = 0;
+						vertices[verticesCount++] = edge.endX;
+						vertices[verticesCount++] = edge.endY;
+						vertices[verticesCount++] = 1;
+						vertices[verticesCount++] = edge.startX;
+						vertices[verticesCount++] = edge.startY;
+						vertices[verticesCount++] = 1;
+						
+						indices[indicesCount++] = index;
+						indices[indicesCount++] = index + 2;
+						indices[indicesCount++] = index + 1;
+						indices[indicesCount++] = index;
+						indices[indicesCount++] = index + 3;
+						indices[indicesCount++] = index + 2;
 					}
 					
 					indexOffset += (localEdgeCount * VERTICES_PER_EDGE);
@@ -326,8 +344,11 @@ package starling.extensions.lighting.core
 				geometryIndexBuffer = context.createIndexBuffer(totalEdgeCount * INDICES_PER_EDGE);
 			}
 			
+			vertices.length = verticesCount;
+			indices.length = indicesCount;
+			
 			geometryVertexBuffer.uploadFromVector(vertices, 0, geometryVertexCount);
-			geometryIndexBuffer.uploadFromVector(indices, 0, indices.length);
+			geometryIndexBuffer.uploadFromVector(indices, 0, indicesCount);
 		}
 		
 		private function renderLight(support:RenderSupport, light:LightBase, context:Context3D):void
