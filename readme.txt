@@ -1,1 +1,0 @@
-[WIP] Lighting extention for the Starling AS3 game framework
