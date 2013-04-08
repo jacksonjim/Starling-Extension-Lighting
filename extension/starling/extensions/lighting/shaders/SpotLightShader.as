@@ -1,5 +1,7 @@
 package starling.extensions.lighting.shaders
 {
+	import com.instagal.regs.*;	
+	
 	import starling.extensions.lighting.lights.SpotLight;
 
 	import flash.display3D.Context3D;
@@ -21,6 +23,8 @@ package starling.extensions.lighting.shaders
 		public function SpotLightShader(width:int, height:int)
 		{
 			super(NAME);
+			
+			_useInstagal = true;
 			
 			params = new Vector.<Number>(16);
 			
@@ -59,7 +63,13 @@ package starling.extensions.lighting.shaders
 			context.setVertexBufferAt(1, _uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
 		}
 		
-		override protected function vertexShaderProgram():String
+		override protected function vertexShaderProgram():void
+		{
+			_vertexShader.mov(op, a0);
+			_vertexShader.mov(v0, a1);
+		}
+		
+		override protected function vertexShaderProgramAsString():String
 		{
 			var program:String =
 			
@@ -69,7 +79,29 @@ package starling.extensions.lighting.shaders
 			return program;
 		}
 		
-		override protected function fragmentShaderProgram():String
+		override protected function fragmentShaderProgram():void
+		{
+			_fragmentShader.mul(t0^xy, c1^zw, v0^xy);
+			_fragmentShader.sub(t0^xy, t0^xy, c1^xy);
+			_fragmentShader.mov(t0^z, c2^x);
+			
+			_fragmentShader.nrm(t2^xyz, t1^xyz);
+			_fragmentShader.dp3(t2^x, t2^xyz, c4^xyz);
+			_fragmentShader.sge(t2^y, t2^x, c4^w);
+			_fragmentShader.mul(t2^x, t2^x, t2^y);
+			_fragmentShader.pow(t2^x, t2^x, c2^z);
+			
+			_fragmentShader.dp3(t1^x, t1^xyz, t1^xyz);
+			_fragmentShader.sqt(t1^xyz, t1^xyz);
+			_fragmentShader.div(t1^x, t1^x, c2^w);
+			_fragmentShader.sat(t1^x, t1^x);
+			_fragmentShader.sub(t1^x, c2^y, t1^x);
+			
+			_fragmentShader.mul(t2^x, t2^x, t1^x);
+			_fragmentShader.mul(oc, t2^x, c3^xyz);
+		}
+		
+		override protected function fragmentShaderProgramAsString():String
 		{
 			//fc1 = [light.x, light.y, width, height]
 			//fc2 = [0, 1, focus, radius]

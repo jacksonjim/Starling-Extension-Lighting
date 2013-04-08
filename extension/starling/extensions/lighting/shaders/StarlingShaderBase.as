@@ -1,5 +1,6 @@
 package starling.extensions.lighting.shaders
 {
+	import com.instagal.Shader;
 	import starling.core.Starling;
 	import starling.errors.AbstractMethodError;
 	import starling.extensions.lighting.core.LightLayer;
@@ -18,6 +19,12 @@ package starling.extensions.lighting.shaders
 	{
 		protected var _name:String;
 		protected var _programAssembler:AGALMiniAssembler;
+		protected var _vertexShader:Shader;
+		protected var _fragmentShader:Shader;
+		protected var _vertexAgalCode:ByteArray;
+		protected var _fragmentAgalCode:ByteArray;
+		
+		protected var _useInstagal:Boolean = false;
 		
 		/**
 		 * abstract baseclass wrapping shader code and registration with Starling
@@ -26,6 +33,10 @@ package starling.extensions.lighting.shaders
 		{
 			_name = name;
 			_programAssembler = new AGALMiniAssembler();
+			//_vertexShader = new Shader( Context3DProgramType.VERTEX );
+			//_fragmentShader = new Shader( Context3DProgramType.FRAGMENT );
+			_vertexAgalCode = new ByteArray();
+			_fragmentAgalCode = new ByteArray();
 			
 			register();
 		}
@@ -42,24 +53,58 @@ package starling.extensions.lighting.shaders
 		
 		private function assembleVertexShader():ByteArray
 		{
-			_programAssembler.assemble(Context3DProgramType.VERTEX, vertexShaderProgram());
-			
-			return _programAssembler.agalcode;
+			if (_useInstagal)
+			{
+				_vertexShader = new Shader( Context3DProgramType.VERTEX );
+				
+				vertexShaderProgram();
+
+				_vertexAgalCode = _vertexShader.complete();
+
+				return _vertexAgalCode;
+			}
+			else {
+				_programAssembler.assemble(Context3DProgramType.VERTEX, vertexShaderProgramAsString());
+				
+				return _programAssembler.agalcode;
+			}
 		}
 		
-		protected function vertexShaderProgram():String
+		protected function vertexShaderProgramAsString():String
+		{
+			throw new AbstractMethodError();
+		}
+		
+		protected function vertexShaderProgram():void
 		{
 			throw new AbstractMethodError();
 		}
 		
 		private function assembleFragmentShader():ByteArray
 		{
-			_programAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShaderProgram());
+			if (_useInstagal)
+			{
+				_fragmentShader = new Shader( Context3DProgramType.FRAGMENT );
+				
+				fragmentShaderProgram();
+				
+				_fragmentAgalCode = _fragmentShader.complete();
+				
+				return _fragmentAgalCode;			
+			}
+			else {
+				_programAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShaderProgramAsString());
 			
-			return _programAssembler.agalcode;
+				return _programAssembler.agalcode;
+			}			
 		}
 		
-		protected function fragmentShaderProgram():String
+		protected function fragmentShaderProgramAsString():String
+		{
+			throw new AbstractMethodError();
+		}
+		
+		protected function fragmentShaderProgram():void
 		{
 			throw new AbstractMethodError();
 		}
