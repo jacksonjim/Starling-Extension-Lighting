@@ -57,7 +57,7 @@ package starling.extensions.lighting.shaders
 			context.setVertexBufferAt(1, _uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
 		}
 		
-		override protected function vertexShaderProgramAsString():String
+		override protected function vertexShaderProgram():String
 		{
 			var program:String =
 			
@@ -67,7 +67,7 @@ package starling.extensions.lighting.shaders
 			return program;
 		}
 		
-		override protected function fragmentShaderProgramAsString():String
+		override protected function fragmentShaderProgram():String
 		{
 			//fc1 = [light.x, light.y, width, height]
 			//fc2 = [0, 1, 0, radius]

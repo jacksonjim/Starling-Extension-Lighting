@@ -59,7 +59,7 @@ package starling.extensions.lighting.shaders
 			context.setTextureAt(0, _texture);
 		}
 		
-		override protected function vertexShaderProgramAsString():String
+		override protected function vertexShaderProgram():String
 		{
 			var program:String =
 				
@@ -68,7 +68,7 @@ package starling.extensions.lighting.shaders
 			return program;
 		}
 		
-		override protected function fragmentShaderProgramAsString():String
+		override protected function fragmentShaderProgram():String
 		{
 			var program:String =
 				
