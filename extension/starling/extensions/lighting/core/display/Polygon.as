@@ -119,8 +119,9 @@ package starling.extensions.lighting.core.display
       if (mIndexBuffer)  mIndexBuffer.dispose();
       
       mVertexBuffer = context.createVertexBuffer(mVertexData.numVertices, VertexData.ELEMENTS_PER_VERTEX);
-      // Starling must run on 1.4
-      //mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+      // starling v1.3
+	  //mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+	  // starling v1.4
       mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
       
       mIndexBuffer = context.createIndexBuffer(mIndexData.length);
@@ -146,7 +147,10 @@ package starling.extensions.lighting.core.display
       
       // activate program (shader) and set the required buffers / constants 
       context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
-      context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2); 
+      context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+	  // Starling v1.3
+	  //context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
+	  // Starling v1.4
       context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.BYTES_4);
       context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);            
       context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
