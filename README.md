@@ -1,4 +1,5 @@
-Lighting extension for the Starling AS3 game framework (v1.4 rc2)
+This project never updates! 
+# Lighting extension for the Starling AS3 game framework (v1.4 rc2)
 
 Features:
 Point lights,
